@@ -42,3 +42,17 @@ class Estudiante:
     def __hash__(self):
         # Define un hash basado en la cédula del estudiante para evitar duplicados
         return hash(self.cedula)
+    
+    #setters
+    def set_cedula(self, cedula):
+        self.cedula = cedula
+        
+    def set_nombre(self, nombre):
+        self.nombre = nombre
+        
+    #getters
+    def get_cedula(self):
+        return self.cedula
+    
+    def get_nombre(self):
+        return self.nombre
