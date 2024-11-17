@@ -8,8 +8,6 @@ class GestorBaseDatos:
     def __init__(self, url_db='inscripciones.db'):
         self.URL_DB = url_db
         self.conexion = None
-        self.lector = LectorArchivoTexto()
-        self.validador = ValidadorDatos()
 
     def conectar(self):
         try:
@@ -55,8 +53,7 @@ class GestorBaseDatos:
                     cedula_estudiante TEXT,
                     codigo_materia TEXT,
                     FOREIGN KEY (cedula_estudiante) REFERENCES estudiantes(cedula),
-                    FOREIGN KEY (codigo_materia) REFERENCES materias(codigo),
-                    UNIQUE(cedula_estudiante, codigo_materia)
+                    FOREIGN KEY (codigo_materia) REFERENCES materias(codigo)
                 )
             ''')
             
@@ -64,78 +61,89 @@ class GestorBaseDatos:
         except sqlite3.Error as e:
             print(f"Error al crear las tablas: {e}")
             raise
-
-    def procesar_archivo(self, ruta_archivo: str):
-        """Procesa un archivo y guarda sus datos en la base de datos"""
-        try:
-            self.conectar()
-            lineas = self.lector.obtener_lineas(ruta_archivo)
-            estudiantes_procesados = {}
-
-            for linea in lineas:
-                linea = linea.strip()
-                if not linea:
-                    continue
-
-                if not self.validador.validar_formato_linea(linea):
-                    print(f"Línea inválida ignorada: {linea}")
-                    continue
-
-                cedula, nombre, codigo_materia, nombre_materia = linea.split(",")
-
-                # Crear o recuperar estudiante
-                if cedula not in estudiantes_procesados:
-                    estudiantes_procesados[cedula] = Estudiante(cedula, nombre)
-                
-                # Adicionar materia al estudiante
-                estudiantes_procesados[cedula].adicionar_materia(codigo_materia, nombre_materia)
-
-            # Guardar todos los estudiantes procesados
-            for estudiante in estudiantes_procesados.values():
-                self.guardar_estudiante_completo(estudiante)
-
-            print(f"Archivo procesado exitosamente. {len(estudiantes_procesados)} estudiantes procesados.")
-
-        except Exception as e:
-            print(f"Error al procesar el archivo: {e}")
-            raise
-        finally:
-            self.desconectar()
-
-    def guardar_estudiante_completo(self, estudiante: Estudiante):
-        """Guarda un estudiante y todas sus materias en la base de datos"""
+    
+    #Obtiene un estudiante por su cédula     
+    def obtener_estudiante(self, cedula: str):
         cursor = self.conexion.cursor()
+        cursor.execute('''
+            SELECT cedula, nombre
+            FROM estudiantes
+            WHERE cedula = ?
+        ''', (cedula,))
+        resultado = cursor.fetchone()
+        return Estudiante(*resultado) if resultado else None
+    
+    #Guarda un estudiante si no existe
+    def guardar_estudiante(self, cedula: str, nombre: str):
         try:
-            # Guardar estudiante
+            cursor = self.conexion.cursor()
             cursor.execute('''
-                INSERT OR REPLACE INTO estudiantes (cedula, nombre)
+                INSERT OR IGNORE INTO estudiantes (cedula, nombre)
                 VALUES (?, ?)
-            ''', (estudiante.get_cedula(), estudiante.get_nombre()))
-
-            # Guardar cada materia y su inscripción
-            for materia in estudiante.materias:
-                # Guardar materia
-                cursor.execute('''
-                    INSERT OR IGNORE INTO materias (codigo, nombre)
-                    VALUES (?, ?)
-                ''', (materia.get_codigo(), materia.get_nombre()))
-
-                # Guardar inscripción
-                cursor.execute('''
-                    INSERT OR IGNORE INTO inscripciones (cedula_estudiante, codigo_materia)
-                    VALUES (?, ?)
-                ''', (estudiante.get_cedula(), materia.get_codigo()))
-
+            ''', (cedula, nombre))
             self.conexion.commit()
-            print(f"Estudiante {estudiante.get_nombre()} guardado con {len(estudiante.materias)} materias.")
-
         except sqlite3.Error as e:
-            print(f"Error al guardar estudiante {estudiante.get_cedula()}: {e}")
-            self.conexion.rollback()
+            print(f"Error al guardar el estudiante {cedula}: {e}")
             raise
 
-    def obtener_estudiantes_por_materia(self, codigo_materia: str) -> list:
-        """Obtiene todos los estudiantes inscritos en una materia específica"""
+        
+        
+    #Obtiene una materia por su código
+    def obtener_materia(self, codigo: str):
+        cursor = self.conexion.cursor()
+        cursor.execute('''
+            SELECT codigo, nombre
+            FROM materias
+            WHERE codigo = ?
+        ''', (codigo,))
+        resultado = cursor.fetchone()
+        return Materia(*resultado) if resultado else None
+        
+        
+    #Guarda una materia si no existe
+    def guardar_materia(self, codigo: str, nombre: str):
+        try:
+            cursor = self.conexion.cursor()
+            cursor.execute('''
+                INSERT OR IGNORE INTO materias (codigo, nombre)
+                VALUES (?, ?)
+            ''', (codigo, nombre))
+            self.conexion.commit()
+        except sqlite3.Error as e:
+            print(f"Error al guardar la materia {codigo}: {e}")
+            raise
+        
+        
+    #Guarda una inscripción
+    def guardar_inscripcion(self, cedula: str, codigo_materia: str):
+        try:
+            cursor = self.conexion.cursor()
+            cursor.execute('''
+                INSERT OR IGNORE INTO inscripciones (cedula_estudiante, codigo_materia)
+                VALUES (?, ?)
+            ''', (cedula, codigo_materia))
+            self.conexion.commit()
+        except sqlite3.Error as e:
+            print(f"Error al guardar la inscripción de {cedula} en la materia {codigo_materia}: {e}")
+            raise
+
+    #Obtiene todas las materias inscritas por un estudiante
+    def obtener_materias_por_estudiante(self, cedula: str):
+        try:
+            cursor = self.conexion.cursor()
+            cursor.execute('''
+                SELECT m.codigo, m.nombre
+                FROM materias m
+                JOIN inscripciones i ON m.codigo = i.codigo_materia
+                WHERE i.cedula_estudiante = ?
+            ''', (cedula,))
+            return cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"Error al obtener las materias del estudiante {cedula}: {e}")
+            return []
+    
+    #Obtiene todos los estudiantes inscritos en una materia específica
+    def obtener_estudiantes_por_materia(self, codigo: str) -> list:
         cursor = self.conexion.cursor()
         try:
             cursor.execute('''
@@ -143,13 +151,15 @@ class GestorBaseDatos:
                 FROM estudiantes e
                 JOIN inscripciones i ON e.cedula = i.cedula_estudiante
                 WHERE i.codigo_materia = ?
-            ''', (codigo_materia,))
+            ''', (codigo,))
             
-            return [Estudiante(cedula, nombre) for cedula, nombre in cursor.fetchall()]
+            estudiantes = cursor.fetchall()
+            return[{"cedula": cedula, "nombre": nombre} for cedula, nombre in estudiantes]
         except sqlite3.Error as e:
-            print(f"Error al consultar estudiantes por materia: {e}")
+            print(f"Error al obtener los estudiantes de la materia {codigo}: {e}")
             return []
 
+    #Obtiene el total de materias inscritas por un estudiante
     def obtener_total_materias_estudiante(self, cedula: str) -> int:
         """Obtiene el total de materias inscritas por un estudiante"""
         cursor = self.conexion.cursor()

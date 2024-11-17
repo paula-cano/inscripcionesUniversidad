@@ -1,37 +1,70 @@
 from src.baseDeDatos.GestorBaseDatos import GestorBaseDatos
-from src.modelos.estudiante import Estudiante
+from src.programa.archivo import LectorArchivoTexto
+from src.programa.validador import ValidadorDatos
 
 class ConsolidadoInscripciones:
     def __init__(self):
         self.base_datos = GestorBaseDatos()
+        self.lector = LectorArchivoTexto()
+        self.validador = ValidadorDatos()
+        self.base_datos.conectar()
 
     def consolidar_archivo(self, ruta: str):
-        lineas = self.lector.obtener_lineas(ruta)
+        
+        try:
+            lineas = self.lector.obtener_lineas(ruta)
+            
+        except FileNotFoundError:
+            print(f"Archivo no encontrado: {ruta}")
+            return
+        
         for linea in lineas:
-            if self.validar_datos_linea(linea):
-                self.procesar_linea(linea)
-
-    def procesar_linea(self, linea: str):
-        # Procesa cada línea y la convierte en un objeto Estudiante y Materia
+            linea = linea.strip()
+            if not self.validador.validar_formato_linea(linea):
+                print(f"Línea inválida ignorada: {linea}")
+                continue
+        
         cedula, nombre, codigo_materia, nombre_materia = linea.split(",")
-        estudiante = self.buscar_estudiante(cedula)
-        if not estudiante:
-            estudiante = Estudiante(cedula, nombre)
-            self.estudiantes.append(estudiante)
-        estudiante.adicionar_materia(codigo_materia, nombre_materia)
 
-    def buscar_estudiante(self, cedula: str):
-        # Busca un estudiante por su cédula en la lista de estudiantes
-        return next((est for est in self.estudiantes if est.cedula == cedula), None)
+        # Validar y crear estudiante
+        if not self.verificar_estudiante_creado(cedula):
+            self.base_datos.guardar_estudiante(cedula, nombre)
 
-    def validar_datos_linea(self, linea: str):
-        # Llama al validador de LectorArchivoTexto para validar el formato
-        return self.lector.validador.validar_formato_linea(linea)
+        # Validar y crear materia
+        if not self.verificar_materia_creada(codigo_materia):
+            self.base_datos.guardar_materia(codigo_materia, nombre_materia)
 
-    def obtener_estudiantes_por_materia(self, codigo_materia: str):
-        # Devuelve una lista de estudiantes inscritos en una materia específica
-        return [est for est in self.estudiantes if any(mat.codigo == codigo_materia for mat in est.materias)]
+        # Crear inscripción
+        self.base_datos.guardar_inscripcion(cedula, codigo_materia)
 
-    def get_total_materias_estudiante(self, cedula: str):
-        estudiante = self.buscar_estudiante(cedula)
-        return estudiante.get_total_materias() if estudiante else 0
+    def verificar_estudiante_creado(self, cedula: str) -> bool:
+        return self.base_datos.obtener_estudiante(cedula) is not None
+
+    def verificar_materia_creada(self, codigo: str) -> bool:
+        return self.base_datos.obtener_materia(codigo) is not None
+    
+    def mostrar_materias_por_estudiante(self, cedula: str):
+        materias = self.base_datos.obtener_materias_por_estudiante(cedula)
+        if materias:
+            print(f"Materias inscritas para el estudiante {cedula}:")
+            for codigo, nombre in materias:
+                print(f"- {codigo}: {nombre}")
+        else:
+            print(f"No se encontraron materias para el estudiante {cedula}.")
+            
+    def mostrar_estudiantes_por_materia(self, codigo_materia: str):
+        estudiantes = self.base_datos.obtener_estudiantes_por_materia(codigo_materia)
+        if estudiantes:
+            print(f"Estudiantes inscritos en la materia {codigo_materia}:")
+            for cedula, nombre in estudiantes:
+                print(f"- {cedula}: {nombre}")
+        else:
+            print(f"No se encontraron estudiantes para la materia {codigo_materia}.")
+            
+    def total_materias_estudiante(self, cedula: str):
+        total = self.base_datos.obtener_total_materias_estudiante(cedula)
+        print(f"Total de materias inscritas para el estudiante {cedula}: {total}")
+        
+    def desconectarDB(self):
+        self.base_datos.desconectar()
+
