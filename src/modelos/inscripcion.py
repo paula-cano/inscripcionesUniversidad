@@ -1,7 +1,7 @@
 # src/consolidado.py
 
 from src.programa.archivo import LectorArchivoTexto
-from src.baseDeDatos.controladorBD import GestorBaseDatos
+from src.baseDeDatos.GestorBaseDatos import GestorBaseDatos
 from src.modelos.estudiante import Estudiante
 
 class ConsolidadoInscripciones:

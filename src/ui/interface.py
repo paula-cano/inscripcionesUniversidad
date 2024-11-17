@@ -1,7 +1,14 @@
+from src.baseDeDatos.GestorBaseDatos import GestorBaseDatos
+from tkinter import filedialog
+import tkinter as tk
+import os
+
 class InterfazConsola:
     def __init__(self):
-        # Puedes inicializar más componentes si es necesario
-        pass
+        # Inicializamos una instancia de tk pero la mantenemos oculta
+        self.root = tk.Tk()
+        self.root.withdraw()
+        self.gestor_db = GestorBaseDatos()
 
     def mostrarMenu(self):
         while True:
@@ -27,4 +34,26 @@ class InterfazConsola:
             else:
                 print("Opción inválida. Intente de nuevo.")
 
-    # Define otros métodos como cargarArchivo(), mostrarEstudiantes(), etc.
+    def cargarArchivo(self):
+        try:
+            # Abre el diálogo para seleccionar archivos
+            ruta = filedialog.askopenfilename(
+                title="Seleccionar archivo de inscripciones",
+                filetypes=[
+                    ("Archivos CSV", "*.csv"),
+                    ("Archivos de texto", "*.txt"),
+                    ("Todos los archivos", "*.*")
+                ]
+            )
+            
+            # Verifica si se seleccionó un archivo
+            if ruta:
+                self.gestor_db.procesar_archivo(ruta)
+                print(f"Archivo seleccionado: {os.path.basename(ruta)}")
+                print("Archivo procesado exitosamente.")
+            else:
+                print("No se seleccionó ningún archivo.")
+                
+        except Exception as e:
+            print(f"Error al cargar el archivo: {e}")
+
