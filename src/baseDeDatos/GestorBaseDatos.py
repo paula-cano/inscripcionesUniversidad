@@ -1,5 +1,3 @@
-# src/baseDeDatos/GestorBaseDatos.py
-
 import sqlite3
 from src.programa.archivo import LectorArchivoTexto
 from src.programa.validador import ValidadorDatos

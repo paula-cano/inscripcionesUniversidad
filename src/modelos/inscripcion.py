@@ -1,13 +1,8 @@
-# src/consolidado.py
-
-from src.programa.archivo import LectorArchivoTexto
 from src.baseDeDatos.GestorBaseDatos import GestorBaseDatos
 from src.modelos.estudiante import Estudiante
 
 class ConsolidadoInscripciones:
     def __init__(self):
-        self.estudiantes = []  # Listado de objetos Estudiante
-        self.lector = LectorArchivoTexto()
         self.base_datos = GestorBaseDatos()
 
     def consolidar_archivo(self, ruta: str):

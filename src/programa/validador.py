@@ -1,5 +1,3 @@
-# src/validador_datos.py
-
 class ValidadorDatos:
     def validar_cedula(self, cedula: str):
         return cedula.isdigit() and len(cedula) > 5

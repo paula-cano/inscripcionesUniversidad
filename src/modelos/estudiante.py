@@ -1,38 +1,30 @@
-from src.modelos.materia import Materia
-import json
-
 class Estudiante:
     def __init__(self, cedula: str, nombre: str):
         self.cedula = cedula
         self.nombre = nombre
-        self.materias = set()  # Utilizamos un conjunto para evitar materias duplicadas
+        
+    @property
+    def cedula(self):
+        return self._cedula
 
-    def adicionar_materia(self, codigo: str, nombre: str) -> bool:
-        materia = Materia(codigo, nombre)
-        # Intenta añadir la materia al conjunto; True si es nueva, False si ya existía
-        if materia not in self.materias:
-            self.materias.add(materia)
-            return True
-        return False
+    @cedula.setter
+    def cedula(self, value):
+        if not value.isdigit() or len(value.strip()) <= 5:
+            raise ValueError("La cédula debe ser numérica y tener más de 5 dígitos.")
+        self._cedula = value.strip()
 
-    def get_total_materias(self) -> int:
-        return len(self.materias)
+    @property
+    def nombre(self):
+        return self._nombre
 
-    def to_string(self) -> str:
-        materias_str = ", ".join(str(materia) for materia in self.materias)
-        return f"Estudiante: {self.cedula} - {self.nombre} | Materias: {materias_str}"
+    @nombre.setter
+    def nombre(self, value):
+        if len(value.strip()) <= 2:
+            raise ValueError("El nombre debe tener más de 2 caracteres.")
+        self._nombre = value.strip()
 
-    def to_json(self) -> str:
-        estudiante_dict = {
-            "cedula": self.cedula,
-            "nombre": self.nombre,
-            "materias": [{"codigo": materia.codigo, "nombre": materia.nombre} for materia in self.materias]
-        }
-        return json.dumps(estudiante_dict, indent=4)
-
-    def to_csv(self) -> str:
-        materias_csv = "\n".join(f"{self.cedula},{self.nombre},{materia.codigo},{materia.nombre}" for materia in self.materias)
-        return materias_csv
+    def __str__(self):
+        return f"Estudiante(cédula: {self.cedula}, nombre: {self.nombre})"
 
     def __eq__(self, other):
         if isinstance(other, Estudiante):
@@ -40,19 +32,5 @@ class Estudiante:
         return False
 
     def __hash__(self):
-        # Define un hash basado en la cédula del estudiante para evitar duplicados
         return hash(self.cedula)
     
-    #setters
-    def set_cedula(self, cedula):
-        self.cedula = cedula
-        
-    def set_nombre(self, nombre):
-        self.nombre = nombre
-        
-    #getters
-    def get_cedula(self):
-        return self.cedula
-    
-    def get_nombre(self):
-        return self.nombre
