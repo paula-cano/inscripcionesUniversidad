@@ -1,6 +1,4 @@
 import sqlite3
-from src.programa.archivo import LectorArchivoTexto
-from src.programa.validador import ValidadorDatos
 from src.modelos.estudiante import Estudiante
 from src.modelos.materia import Materia
 
@@ -27,39 +25,36 @@ class GestorBaseDatos:
                 print(f"Error al cerrar la conexión: {e}")
 
     def inicializar_tablas(self):
-        """Crea las tablas necesarias si no existen"""
-        cursor = self.conexion.cursor()
+        """Crea las tablas necesarias si no existen."""
         try:
-            # Tabla Estudiantes
+            cursor = self.conexion.cursor()
+            # Crear tablas si no existen
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS estudiantes (
+                CREATE TABLE IF NOT EXISTS Estudiantes (
                     cedula TEXT PRIMARY KEY,
                     nombre TEXT NOT NULL
                 )
             ''')
-            
-            # Tabla Materias
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS materias (
+                CREATE TABLE IF NOT EXISTS Materias (
                     codigo TEXT PRIMARY KEY,
                     nombre TEXT NOT NULL
                 )
             ''')
-            
-            # Tabla Inscripciones
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS inscripciones (
+                CREATE TABLE IF NOT EXISTS Inscripciones (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    cedula_estudiante TEXT,
-                    codigo_materia TEXT,
-                    FOREIGN KEY (cedula_estudiante) REFERENCES estudiantes(cedula),
-                    FOREIGN KEY (codigo_materia) REFERENCES materias(codigo)
+                    cedula_estudiante TEXT NOT NULL,
+                    codigo_materia TEXT NOT NULL,
+                    FOREIGN KEY (cedula_estudiante) REFERENCES Estudiantes(cedula),
+                    FOREIGN KEY (codigo_materia) REFERENCES Materias(codigo)
                 )
             ''')
-            
             self.conexion.commit()
+            print("Tablas inicializadas correctamente.")
         except sqlite3.Error as e:
-            print(f"Error al crear las tablas: {e}")
+            print(f"Error al inicializar tablas: {e}")
+            self.conexion.rollback()
             raise
     
     #Obtiene un estudiante por su cédula     
@@ -85,8 +80,6 @@ class GestorBaseDatos:
         except sqlite3.Error as e:
             print(f"Error al guardar el estudiante {cedula}: {e}")
             raise
-
-        
         
     #Obtiene una materia por su código
     def obtener_materia(self, codigo: str):
@@ -119,10 +112,16 @@ class GestorBaseDatos:
         try:
             cursor = self.conexion.cursor()
             cursor.execute('''
-                INSERT OR IGNORE INTO inscripciones (cedula_estudiante, codigo_materia)
-                VALUES (?, ?)
+                SELECT 1 FROM inscripciones
+                WHERE cedula_estudiante = ? AND codigo_materia = ?
             ''', (cedula, codigo_materia))
-            self.conexion.commit()
+
+            if cursor.fetchone() is None:  # Solo guardar si no existe
+                cursor.execute('''
+                    INSERT INTO inscripciones (cedula_estudiante, codigo_materia)
+                    VALUES (?, ?)
+                ''', (cedula, codigo_materia))
+                self.conexion.commit()
         except sqlite3.Error as e:
             print(f"Error al guardar la inscripción de {cedula} en la materia {codigo_materia}: {e}")
             raise

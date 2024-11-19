@@ -1,9 +1,9 @@
 class ValidadorDatos:
     def validar_cedula(self, cedula: str):
-        return cedula.isdigit() and len(cedula) > 5
+        return cedula.isdigit() and len(cedula) >= 6
 
     def validar_nombre(self, nombre: str):
-        return nombre.isalpha() and len(nombre) > 2
+        return all(p.isalpha() for p in nombre.split()) and len(nombre) > 2
 
     def validar_codigo_materia(self, codigo: str):
         return codigo.isdigit()
@@ -17,6 +17,5 @@ class ValidadorDatos:
             self.validar_codigo_materia(partes[2])
         )
 
-    def detectar_duplicados(self, datos: list):
-        # Detecta duplicados en la lista de datos
+    def detectar_duplicados(self, datos: list): #en la lista de datos
         return list(set([dato for dato in datos if datos.count(dato) > 1]))

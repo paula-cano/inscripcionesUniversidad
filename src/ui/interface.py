@@ -51,7 +51,7 @@ class InterfazConsola:
             # Verifica si se seleccionó un archivo
             if ruta:
                 print(f"Archivo seleccionado: {os.path.basename(ruta)}")
-                self.inscripciones.consolidar_archivo(ruta)
+                self.inscripciones.Consolidar_archivo(ruta)
                 print("Archivo procesado exitosamente.")
             else:
                 print("No se seleccionó ningún archivo.")
