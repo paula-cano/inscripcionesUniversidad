@@ -49,8 +49,8 @@ class ConsolidadoInscripciones:
         estudiantes = self.base_datos.obtener_estudiantes_por_materia(codigo_materia)
         if estudiantes:
             print(f"Estudiantes inscritos en la materia {codigo_materia}:")
-            for cedula, nombre in estudiantes:
-                print(f"- {cedula}: {nombre}")
+            for estudiante in estudiantes:
+                    print(f"- {estudiante['cedula']}: {estudiante['nombre']}")
         else:
             print(f"No se encontraron estudiantes para la materia {codigo_materia}.")
             

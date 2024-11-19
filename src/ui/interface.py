@@ -62,24 +62,14 @@ class InterfazConsola:
     def mostrar_total_materias_estudiante(self):
         try:
             cedula = input("Ingrese la cédula del estudiante: ").strip()
-            materias = self.inscripciones.total_materias_estudiante(cedula)
-            if materias:
-                print(f"\nEl total de materias inscritas para el estudiante {cedula} es: {materias}")
-            else:
-                print(f"No se encontraron materias para el estudiante {cedula}.")
+            self.inscripciones.total_materias_estudiante(cedula)
         except Exception as e:
             print(f"Error al mostrar las materias del estudiante: {e}")
             
     def filtrarPorMateria(self):
         try:
             codigo_materia = input("Ingrese el código de la materia: ").strip()
-            estudiantes = self.inscripciones.mostrar_estudiantes_por_materia(codigo_materia)
-            if estudiantes:
-                print(f"\nEstudiantes inscritos en la materia {codigo_materia}:")
-                for estudiante in estudiantes:
-                    print(f"- {estudiante['cedula']}: {estudiante['nombre']}")
-            else:
-                print(f"No se encontraron estudiantes para la materia {codigo_materia}.")
+            self.inscripciones.mostrar_estudiantes_por_materia(codigo_materia)                
         except Exception as e:
             print(f"Error al filtrar estudiantes por materia: {e}")
             
