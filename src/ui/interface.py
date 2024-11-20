@@ -43,8 +43,7 @@ class InterfazConsola:
                 title="Seleccionar archivo de inscripciones",
                 filetypes=[
                     ("Archivos CSV", "*.csv"),
-                    ("Archivos de texto", "*.txt"),
-                    ("Todos los archivos", "*.*")
+                    ("Archivos de texto", "*.txt")
                 ]
             )
             

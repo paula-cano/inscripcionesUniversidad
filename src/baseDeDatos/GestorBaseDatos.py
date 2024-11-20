@@ -44,11 +44,11 @@ class GestorBaseDatos:
             ''')
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS Inscripciones (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     cedula_estudiante TEXT NOT NULL,
                     codigo_materia TEXT NOT NULL,
                     FOREIGN KEY (cedula_estudiante) REFERENCES Estudiantes(cedula),
-                    FOREIGN KEY (codigo_materia) REFERENCES Materias(codigo)
+                    FOREIGN KEY (codigo_materia) REFERENCES Materias(codigo),
+                    PRIMARY KEY (cedula_estudiante, codigo_materia)
                 )
             ''')
             self.conexion.commit()

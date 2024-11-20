@@ -35,14 +35,14 @@ class ConsolidadoInscripciones:
     def verificar_materia_creada(self, codigo_materia: str) -> bool:
         return self.base_datos.obtener_materia(codigo_materia) is not None
     
-    def mostrar_materias_por_estudiante(self, cedula: str):
+    """def mostrar_materias_por_estudiante(self, cedula: str):
         materias = self.base_datos.obtener_materias_por_estudiante(cedula)
         if materias:
             print(f"Materias inscritas para el estudiante {cedula}:")
             for codigo, nombre in materias:
                 print(f"- {codigo}: {nombre}")
         else:
-            print(f"No se encontraron materias para el estudiante {cedula}.")
+            print(f"No se encontraron materias para el estudiante {cedula}.")"""
             
     def mostrar_estudiantes_por_materia(self, codigo_materia: str):
         estudiantes = self.base_datos.obtener_estudiantes_por_materia(codigo_materia)
