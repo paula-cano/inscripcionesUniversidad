@@ -6,12 +6,13 @@ class GestorBaseDatos:
     def __init__(self, url_db='inscripciones.db'):
         self.URL_DB = url_db
         self.conexion = None
+        self.conectar()
 
     def conectar(self):
         try:
             self.conexion = sqlite3.connect(self.URL_DB)
-            self.inicializar_tablas()
             print("Conexión establecida con la base de datos.")
+            self.inicializar_tablas()
         except sqlite3.Error as e:
             print(f"Error al conectar a la base de datos: {e}")
             raise
@@ -126,7 +127,7 @@ class GestorBaseDatos:
             print(f"Error al guardar la inscripción de {cedula} en la materia {codigo_materia}: {e}")
             raise
 
-    #Obtiene todas las materias inscritas por un estudiante
+    """#Obtiene todas las materias inscritas por un estudiante
     def obtener_materias_por_estudiante(self, cedula: str):
         try:
             cursor = self.conexion.cursor()
@@ -139,7 +140,7 @@ class GestorBaseDatos:
             return cursor.fetchall()
         except sqlite3.Error as e:
             print(f"Error al obtener las materias del estudiante {cedula}: {e}")
-            return []
+            return []"""
     
     #Obtiene todos los estudiantes inscritos en una materia específica
     def obtener_estudiantes_por_materia(self, codigo: str) -> list:
@@ -173,3 +174,22 @@ class GestorBaseDatos:
         except sqlite3.Error as e:
             print(f"Error al consultar total de materias: {e}")
             return 0
+        
+    def obtener_datos_tabla(self, nombre_tabla: str):
+        #Obtiene los datos de una tabla específica de la base de datos.
+
+        """:param nombre_tabla: Nombre de la tabla en la base de datos.
+        :return: Una tupla con la lista de nombres de las columnas y las filas de la tabla.
+        """
+        try:
+            cursor = self.conexion.cursor()
+
+            # Consultar los datos de la tabla
+            cursor.execute(f"SELECT * FROM {nombre_tabla}")
+            columnas = [desc[0] for desc in cursor.description]  # Nombres de las columnas
+            filas = cursor.fetchall()  # Datos de la tabla
+
+            return columnas, filas
+        except sqlite3.Error as e:
+            print(f"Error al obtener los datos de la tabla '{nombre_tabla}': {e}")
+            return [], []

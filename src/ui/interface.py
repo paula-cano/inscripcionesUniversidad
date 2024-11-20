@@ -1,8 +1,8 @@
 from src.modelos.inscripcion import ConsolidadoInscripciones
-from src.baseDeDatos.GestorBaseDatos import GestorBaseDatos
 from tkinter import filedialog
 import tkinter as tk
 import os
+import csv
 
 class InterfazConsola:
     def __init__(self):
@@ -28,7 +28,7 @@ class InterfazConsola:
             elif opcion == "3":
                 self.filtrarPorMateria()
             elif opcion == "4":
-                self.exportarDatos()
+                self.exportar_tabla()
             elif opcion == "5":
                 self.inscripciones.desconectarDB()
                 print("Saliendo del programa...")
@@ -73,11 +73,71 @@ class InterfazConsola:
         except Exception as e:
             print(f"Error al filtrar estudiantes por materia: {e}")
             
-    def exportarDatos(self):
+    def exportar_tabla(self):
+        #Permite exportar una tabla de la base de datos a un archivo .csv o .txt.
         try:
-            # Implementa la lógica para exportar datos a JSON o CSV
-            print("Exportar datos aún no está implementado.")
+            nombre_tabla = input("Ingrese el nombre de la tabla a exportar: ").strip()
+            columnas, filas = self.inscripciones.exportar_tabla(nombre_tabla)
+
+            if not columnas or not filas:
+                print(f"No se encontraron datos en la tabla '{nombre_tabla}'.")
+                return
+
+            # Abrir ventana de guardado
+            ruta_guardado = filedialog.asksaveasfilename(
+                title=f"Guardar {nombre_tabla}",
+                defaultextension=".csv",
+                filetypes=[("Archivo CSV", "*.csv"), ("Archivo JSON", "*.json")]
+            )
+
+            if not ruta_guardado:
+                print("No se seleccionó ninguna ubicación para guardar.")
+                return
+
+            # Guardar los datos en el archivo
+            if ruta_guardado.endswith(".csv"):
+                self.guardar_csv(ruta_guardado, columnas, filas)
+            elif ruta_guardado.endswith(".json"):
+                self.guardar_json(ruta_guardado, columnas, filas)
+            else:
+                print("Formato de archivo no soportado.")
+                return
+
+            print(f"Datos exportados exitosamente a {ruta_guardado}")
+
         except Exception as e:
-            print(f"Error al exportar los datos: {e}")
+            print(f"Error al exportar la tabla: {e}")
+            
+    def guardar_csv(self, ruta: str, columnas: list, filas: list):
+        #Guarda los datos en un archivo CSV.
+        """
+        :param ruta: Ruta del archivo CSV.
+        :param columnas: Lista de nombres de las columnas.
+        :param filas: Lista de filas (datos de la tabla).
+        """
+        try:
+            with open(ruta, "w", newline="", encoding="utf-8") as archivo_csv:
+                escritor = csv.writer(archivo_csv)
+                escritor.writerow(columnas)  # Escribir encabezados
+                escritor.writerows(filas)   # Escribir filas
+        except Exception as e:
+            print(f"Error al guardar el archivo CSV: {e}")
+
+    def guardar_json(self, ruta: str, columnas: list, filas: list):   
+        #Guarda los datos en un archivo JSON.
+        """
+        :param ruta: Ruta del archivo JSON.
+        :param columnas: Lista de nombres de las columnas.
+        :param filas: Lista de filas (datos de la tabla).
+        """
+        try:
+            datos = [dict(zip(columnas, fila)) for fila in filas]
+            with open(ruta, "w", encoding="utf-8") as archivo_json:
+                import json
+                json.dump(datos, archivo_json, ensure_ascii=False, indent=4)
+        except Exception as e:
+            print(f"Error al guardar el archivo JSON: {e}")
+
+
             
     

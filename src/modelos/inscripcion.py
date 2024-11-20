@@ -6,7 +6,6 @@ class ConsolidadoInscripciones:
     def __init__(self):
         self.base_datos = GestorBaseDatos()
         self.validador = ValidadorDatos()
-        self.base_datos.conectar()
 
     def Consolidar_archivo(self, ruta_archivo: str):
         try:
@@ -57,6 +56,18 @@ class ConsolidadoInscripciones:
     def total_materias_estudiante(self, cedula: str):
         total = self.base_datos.obtener_total_materias_estudiante(cedula)
         print(f"Total de materias inscritas para el estudiante {cedula}: {total}")
+        
+    def exportar_tabla(self, nombre_tabla: str):
+        if nombre_tabla == "Estudiantes":
+            columnas, filas = self.base_datos.obtener_datos_tabla(nombre_tabla)
+        elif nombre_tabla == "Materias":
+            columnas, filas = self.base_datos.obtener_datos_tabla(nombre_tabla)
+        elif nombre_tabla == "Inscripciones":
+            columnas, filas = self.base_datos.obtener_datos_tabla(nombre_tabla)
+        else:
+            print("El nombre de la tabla es incorrecto.")
+            return
+        return columnas, filas
         
     def desconectarDB(self):
         self.base_datos.desconectar()
